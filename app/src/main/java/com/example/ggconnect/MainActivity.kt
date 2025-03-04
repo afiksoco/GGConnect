@@ -10,6 +10,7 @@ import androidx.navigation.ui.setupWithNavController
 import com.example.ggconnect.databinding.ActivityMainBinding
 import com.google.firebase.FirebaseApp
 
+
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding

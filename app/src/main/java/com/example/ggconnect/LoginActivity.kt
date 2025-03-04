@@ -28,16 +28,10 @@ class LoginActivity : AppCompatActivity() {
         if (currentUser != null) {
             // Reload the user to check if the account still exists
             currentUser.reload().addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    // User reload was successful, check if the user still exists
-                    if (FirebaseAuth.getInstance().currentUser != null) {
-                        transactToNextScreen()
-                    } else {
-                        // User no longer exists, sign in again
-                        signIn()
-                    }
+                if (task.isSuccessful && FirebaseAuth.getInstance().currentUser != null) {
+                    transactToNextScreen()
                 } else {
-                    // Reload failed, sign in again
+                    // User no longer exists or reload failed, sign in again
                     signIn()
                 }
             }
