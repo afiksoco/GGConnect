@@ -23,13 +23,30 @@ class LoginActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
-        // Check if the user is already signed in
-        if (FirebaseAuth.getInstance().currentUser == null) {
-            signIn()
+        val currentUser = FirebaseAuth.getInstance().currentUser
+
+        if (currentUser != null) {
+            // Reload the user to check if the account still exists
+            currentUser.reload().addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    // User reload was successful, check if the user still exists
+                    if (FirebaseAuth.getInstance().currentUser != null) {
+                        transactToNextScreen()
+                    } else {
+                        // User no longer exists, sign in again
+                        signIn()
+                    }
+                } else {
+                    // Reload failed, sign in again
+                    signIn()
+                }
+            }
         } else {
-            transactToNextScreen()
+            // No user signed in, start sign-in flow
+            signIn()
         }
     }
+
 
     // Launch the FirebaseUI Authentication flow
     private fun signIn() {

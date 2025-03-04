@@ -59,4 +59,13 @@ dependencies {
 
     // Firebase AuthUI
     implementation (libs.firebase.ui.auth)
+
+    // Realtime Database
+    implementation (libs.firebase.database.ktx)
+
+    // Firestore Database
+    implementation (libs.firebase.firestore.ktx)
+
+    // For displaying images (e.g., profile pics)
+    implementation (libs.picasso)
 }

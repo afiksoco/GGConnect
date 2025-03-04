@@ -1,13 +1,13 @@
-package com.example.ggconnect.ui.notifications
+package com.example.ggconnect.ui.feed
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 
-class NotificationsViewModel : ViewModel() {
+class FeedViewModel : ViewModel() {
 
     private val _text = MutableLiveData<String>().apply {
-        value = "This is notifications Fragment"
+        value = "This is feed Fragment"
     }
     val text: LiveData<String> = _text
 }
