@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "895356692202",
+    "project_id": "ggconnect-a2554",
+    "storage_bucket": "ggconnect-a2554.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:895356692202:android:54df92c07ed76a4aa45993",
+        "android_client_info": {
+          "package_name": "com.example.ggconnect"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "895356692202-37s393eo0p4k6ufrui50cblavvcuc1ft.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.ggconnect",
+            "certificate_hash": "622a7bfa0c5a050020905817249c6896434cc25b"
+          }
+        },
+        {
+          "client_id": "895356692202-0tvs5s5ke27kgitas6t696li72hvdj2s.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDyjHL3xlSe1dx3j3rePjOAxSAa-mvV4QQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "895356692202-0tvs5s5ke27kgitas6t696li72hvdj2s.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
