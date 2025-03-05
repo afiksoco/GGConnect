@@ -68,4 +68,10 @@ dependencies {
 
     // For displaying images (e.g., profile pics)
     implementation (libs.picasso)
+
+    // Firebase Storage
+    implementation (libs.firebase.storage.ktx)
+
+    implementation (libs.glide)
+
 }

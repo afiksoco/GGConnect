@@ -3,7 +3,7 @@
     "project_number": "895356692202",
     "project_id": "ggconnect-a2554",
     "firebase_url": "https://ggconnect-a2554-default-rtdb.europe-west1.firebasedatabase.app",
-    "storage_bucket": "ggconnect-a2554.appspot.com"
+    "storage_bucket": "ggconnect-a2554.firebasestorage.app"
   },
   "client": [
     {
