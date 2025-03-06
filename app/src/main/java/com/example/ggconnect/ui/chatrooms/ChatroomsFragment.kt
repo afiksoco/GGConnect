@@ -38,7 +38,7 @@ class ChatroomsFragment : Fragment() {
         binding.GamesRecyclerView.apply {
             adapter = gameAdapter
             layoutManager = LinearLayoutManager(requireContext()).apply {
-                orientation = LinearLayoutManager.VERTICAL
+                orientation = LinearLayoutManager.HORIZONTAL
             }
             setHasFixedSize(true)
         }

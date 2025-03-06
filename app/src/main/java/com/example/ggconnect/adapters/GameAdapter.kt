@@ -16,6 +16,10 @@ class GameAdapter(private var games: List<Game> = emptyList()) :
             parent,
             false
         )
+
+        // Initialize ImageLoader only once (during ViewHolder creation)
+        ImageLoader.init(parent.context)
+
         return GameViewHolder(binding)
     }
 
@@ -28,7 +32,6 @@ class GameAdapter(private var games: List<Game> = emptyList()) :
         }
     }
 
-
     override fun getItemCount() = games.size
 
     inner class GameViewHolder(private val binding: ItemGameBinding) :
@@ -36,6 +39,7 @@ class GameAdapter(private var games: List<Game> = emptyList()) :
 
         fun bind(game: Game) {
             binding.gameTitleTextView.text = game.title
+            Log.d("GameAdapter", "Loading image from URL: ${game.imageUrl}")
             ImageLoader.getInstance().loadImage(game.imageUrl, binding.gameImageView)
         }
     }
@@ -46,8 +50,8 @@ class GameAdapter(private var games: List<Game> = emptyList()) :
             Log.e("GameAdapter", "Game list is empty or null")
             return
         }
+        Log.d("GameAdapter", "Updating game list with ${newGames.size} items")
         games = newGames
         notifyDataSetChanged()
     }
-
 }

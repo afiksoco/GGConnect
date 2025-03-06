@@ -56,56 +56,47 @@ class FirestoreService(
 
 
 
-    fun searchUsersAndGames(query: String, onResult: (List<User>, List<Game>) -> Unit) {
+    fun searchUsersAndGames(query: String, onResult: (List<SearchItem.UserItem>, List<SearchItem.GameItem>) -> Unit) {
         val usersCollection = firestore.collection(Constants.DB.USERS_COLLECTION)
         val gamesCollection = firestore.collection(Constants.DB.GAMES_COLLECTION)
 
-        Log.d("FirestoreService", "Searching for: $query")
-
-        // Search for users by name
+        // Fetch users
         usersCollection
-            .orderBy("displayName")
-            .startAt(query)
-            .endAt(query + "\uf8ff")
+            .whereGreaterThanOrEqualTo("displayName", query)
+            .whereLessThanOrEqualTo("displayName", query + "\uf8ff")
             .get()
             .addOnSuccessListener { userResult ->
-                val users = userResult.mapNotNull {
+                val userItems = userResult.mapNotNull { document ->
                     try {
-                        it.toObject(User::class.java)
+                        SearchItem.UserItem(
+                            documentId = document.id, // Firestore document ID
+                            displayName = document.getString("displayName") ?: "",
+                            profilePicUrl = document.getString("profilePicUrl") ?: ""
+                        )
                     } catch (e: Exception) {
-                        Log.e("FirestoreService", "Failed to parse User: ${e.message}")
                         null
                     }
                 }
 
-                Log.d("FirestoreService", "Found ${users.size} users")
-
-                // Search for games by title
+                // Fetch games
                 gamesCollection
-                    .orderBy("title")
-                    .startAt(query)
-                    .endAt(query + "\uf8ff")
+                    .whereGreaterThanOrEqualTo("title", query)
+                    .whereLessThanOrEqualTo("title", query + "\uf8ff")
                     .get()
                     .addOnSuccessListener { gameResult ->
-                        val games = gameResult.mapNotNull {
+                        val gameItems = gameResult.mapNotNull { document ->
                             try {
-                                it.toObject(Game::class.java)
+                                SearchItem.GameItem(
+                                    documentId = document.id, // Firestore document ID
+                                    title = document.getString("title") ?: "",
+                                    imageUrl = document.getString("imageUrl") ?: ""
+                                )
                             } catch (e: Exception) {
-                                Log.e("FirestoreService", "Failed to parse Game: ${e.message}")
                                 null
                             }
                         }
-                        Log.d("FirestoreService", "Found ${games.size} games")
-                        onResult(users, games)
+                        onResult(userItems, gameItems)
                     }
-                    .addOnFailureListener { e ->
-                        Log.e("FirestoreService", "Failed to fetch games: ${e.message}")
-                        onResult(users, emptyList())
-                    }
-            }
-            .addOnFailureListener { e ->
-                Log.e("FirestoreService", "Failed to fetch users: ${e.message}")
-                onResult(emptyList(), emptyList())
             }
     }
 
