@@ -1,5 +1,6 @@
 package com.example.ggconnect.data.firebase
 
+import SearchItem
 import android.util.Log
 import com.example.ggconnect.data.DataManager
 import com.example.ggconnect.data.models.Game
@@ -56,49 +57,35 @@ class FirestoreService(
 
 
 
-    fun searchUsersAndGames(query: String, onResult: (List<SearchItem.UserItem>, List<SearchItem.GameItem>) -> Unit) {
-        val usersCollection = firestore.collection(Constants.DB.USERS_COLLECTION)
-        val gamesCollection = firestore.collection(Constants.DB.GAMES_COLLECTION)
+    // FirestoreService.kt
+    fun searchUsersAndGames(query: String, onResult: (List<SearchItem>) -> Unit) {
+        val usersCollection = firestore.collection("users")
+        val gamesCollection = firestore.collection("games")
 
-        // Fetch users
         usersCollection
             .whereGreaterThanOrEqualTo("displayName", query)
             .whereLessThanOrEqualTo("displayName", query + "\uf8ff")
             .get()
             .addOnSuccessListener { userResult ->
                 val userItems = userResult.mapNotNull { document ->
-                    try {
-                        SearchItem.UserItem(
-                            documentId = document.id, // Firestore document ID
-                            displayName = document.getString("displayName") ?: "",
-                            profilePicUrl = document.getString("profilePicUrl") ?: ""
-                        )
-                    } catch (e: Exception) {
-                        null
-                    }
-                }
+                    document.toObject(User::class.java).copy(id = document.id)
+                }.map { SearchItem.UserItem(it) }
 
-                // Fetch games
                 gamesCollection
                     .whereGreaterThanOrEqualTo("title", query)
                     .whereLessThanOrEqualTo("title", query + "\uf8ff")
                     .get()
                     .addOnSuccessListener { gameResult ->
                         val gameItems = gameResult.mapNotNull { document ->
-                            try {
-                                SearchItem.GameItem(
-                                    documentId = document.id, // Firestore document ID
-                                    title = document.getString("title") ?: "",
-                                    imageUrl = document.getString("imageUrl") ?: ""
-                                )
-                            } catch (e: Exception) {
-                                null
-                            }
-                        }
-                        onResult(userItems, gameItems)
+                            document.toObject(Game::class.java).copy(id = document.id)
+                        }.map { SearchItem.GameItem(it) }
+
+                        val combinedResults = userItems + gameItems
+                        onResult(combinedResults)
                     }
             }
     }
+
 
 
     fun getFriendsProfiles(friendIds: List<String>, onResult: (List<User>) -> Unit) {

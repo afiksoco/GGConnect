@@ -1,6 +1,7 @@
+import com.example.ggconnect.data.models.Game
+import com.example.ggconnect.data.models.User
+
 sealed class SearchItem {
-    data class UserItem(val documentId: String, val displayName: String, val profilePicUrl: String) : SearchItem()
-    data class GameItem(val documentId: String, val title: String, val imageUrl: String) : SearchItem()
+    data class UserItem(val user: User) : SearchItem()
+    data class GameItem(val game: Game) : SearchItem()
 }
-
-
