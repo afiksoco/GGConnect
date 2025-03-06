@@ -1,5 +1,6 @@
 package com.example.ggconnect.ui.chatrooms
 
+import GameAdapter
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -7,32 +8,50 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.ggconnect.data.firebase.FirestoreService
 import com.example.ggconnect.databinding.FragmentChatroomsBinding
 
 class ChatroomsFragment : Fragment() {
 
     private var _binding: FragmentChatroomsBinding? = null
-
-    // This property is only valid between onCreateView and
-    // onDestroyView.
     private val binding get() = _binding!!
+
+    private val firestoreService = FirestoreService()
+    private val gameAdapter = GameAdapter()
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val notificationsViewModel =
-            ViewModelProvider(this).get(ChatroomsViewModel::class.java)
-
         _binding = FragmentChatroomsBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        val textView: TextView = binding.textChatrooms
-        notificationsViewModel.text.observe(viewLifecycleOwner) {
-            textView.text = it
-        }
+        setupRecyclerView()
+        loadGames()
+
         return root
+    }
+
+    private fun setupRecyclerView() {
+        binding.GamesRecyclerView.apply {
+            adapter = gameAdapter
+            layoutManager = LinearLayoutManager(requireContext()).apply {
+                orientation = LinearLayoutManager.VERTICAL
+            }
+            setHasFixedSize(true)
+        }
+    }
+
+    private fun loadGames() {
+        firestoreService.getGames { games ->
+            if (games.isNotEmpty()) {
+                gameAdapter.updateGames(games) // Use the update method
+            } else {
+                binding.textChatrooms.text = "No games available"
+            }
+        }
     }
 
     override fun onDestroyView() {

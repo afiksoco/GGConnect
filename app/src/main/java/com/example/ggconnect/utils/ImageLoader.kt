@@ -11,19 +11,19 @@ import java.lang.ref.WeakReference
 class ImageLoader private constructor(context: Context) {
     private val contextRef = WeakReference(context)
 
-    fun loadImage(source: Drawable,
-                  imageView: ImageView,
-                  placeholder: Int = R.drawable.unavailable_photo){
-        contextRef.get()?.let {
-                context ->
-            Glide
-                .with(context)
-                .load(source)
-                .centerCrop()
-                .placeholder(placeholder)
-                .into(imageView);
-        }
-    }
+//    fun loadImage(source: Drawable,
+//                  imageView: ImageView,
+//                  placeholder: Int = R.drawable.unavailable_photo){
+//        contextRef.get()?.let {
+//                context ->
+//            Glide
+//                .with(context)
+//                .load(source)
+//                .centerCrop()
+//                .placeholder(placeholder)
+//                .into(imageView);
+//        }
+//    }
 
     fun loadImage(source: String,
                   imageView: ImageView,

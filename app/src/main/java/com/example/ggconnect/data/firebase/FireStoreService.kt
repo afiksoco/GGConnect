@@ -1,10 +1,14 @@
 package com.example.ggconnect.data.firebase
 
+import android.util.Log
+import com.example.ggconnect.data.DataManager
 import com.example.ggconnect.data.models.Game
 import com.example.ggconnect.data.models.User
 import com.example.ggconnect.utils.Constants
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import java.util.UUID
+import kotlin.uuid.Uuid
 
 class FirestoreService(
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
@@ -27,21 +31,112 @@ class FirestoreService(
             .addOnFailureListener { onResult(null) }
     }
 
-    // Save or update a game in the database
-    fun saveGame(game: Game, onResult: (Boolean) -> Unit) {
-        firestore.collection(Constants.DB.GAMES_COLLECTION).document(game.id).set(game)
-            .addOnSuccessListener { onResult(true) }
-            .addOnFailureListener { onResult(false) }
-    }
+
 
     // Retrieve all games
     fun getGames(onResult: (List<Game>) -> Unit) {
         firestore.collection(Constants.DB.GAMES_COLLECTION).get()
             .addOnSuccessListener { result ->
-                val games = result.mapNotNull { it.toObject(Game::class.java) }
+                val games = result.mapNotNull {
+                    try {
+                        it.toObject(Game::class.java)
+                    } catch (e: Exception) {
+                        Log.e("FirestoreService", "Error converting document to Game: ${e.message}")
+                        null
+                    }
+                }
+                Log.d("FirestoreService", "Successfully fetched ${games.size} games.")
                 onResult(games)
             }
-            .addOnFailureListener { onResult(emptyList()) }
+            .addOnFailureListener { e ->
+                Log.e("FirestoreService", "Failed to fetch games: ${e.message}")
+                onResult(emptyList())
+            }
+    }
+
+
+
+    fun searchUsersAndGames(query: String, onResult: (List<User>, List<Game>) -> Unit) {
+        val usersCollection = firestore.collection(Constants.DB.USERS_COLLECTION)
+        val gamesCollection = firestore.collection(Constants.DB.GAMES_COLLECTION)
+
+        Log.d("FirestoreService", "Searching for: $query")
+
+        // Search for users by name
+        usersCollection
+            .orderBy("displayName")
+            .startAt(query)
+            .endAt(query + "\uf8ff")
+            .get()
+            .addOnSuccessListener { userResult ->
+                val users = userResult.mapNotNull {
+                    try {
+                        it.toObject(User::class.java)
+                    } catch (e: Exception) {
+                        Log.e("FirestoreService", "Failed to parse User: ${e.message}")
+                        null
+                    }
+                }
+
+                Log.d("FirestoreService", "Found ${users.size} users")
+
+                // Search for games by title
+                gamesCollection
+                    .orderBy("title")
+                    .startAt(query)
+                    .endAt(query + "\uf8ff")
+                    .get()
+                    .addOnSuccessListener { gameResult ->
+                        val games = gameResult.mapNotNull {
+                            try {
+                                it.toObject(Game::class.java)
+                            } catch (e: Exception) {
+                                Log.e("FirestoreService", "Failed to parse Game: ${e.message}")
+                                null
+                            }
+                        }
+                        Log.d("FirestoreService", "Found ${games.size} games")
+                        onResult(users, games)
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e("FirestoreService", "Failed to fetch games: ${e.message}")
+                        onResult(users, emptyList())
+                    }
+            }
+            .addOnFailureListener { e ->
+                Log.e("FirestoreService", "Failed to fetch users: ${e.message}")
+                onResult(emptyList(), emptyList())
+            }
+    }
+
+
+    fun getFriendsProfiles(friendIds: List<String>, onResult: (List<User>) -> Unit) {
+        if (friendIds.isEmpty()) {
+            onResult(emptyList())
+            return
+        }
+
+        firestore.collection(Constants.DB.USERS_COLLECTION)
+            .whereIn("id", friendIds)
+            .get()
+            .addOnSuccessListener { result ->
+                val friends = result.mapNotNull { it.toObject(User::class.java) }
+                onResult(friends)
+            }
+            .addOnFailureListener {
+                onResult(emptyList())
+            }
+    }
+
+    fun saveGamesToFirestore() {
+        val gamesCollection = firestore.collection(Constants.DB.GAMES_COLLECTION)
+        DataManager.generateGameList().forEach { game ->
+            val documentId = UUID.randomUUID().toString()
+
+            gamesCollection.add(game)
+                .addOnSuccessListener { Log.d("games to db", "game $documentId") }
+                .addOnFailureListener { e ->Log.d("failed games", "game $documentId") }
+        }
     }
 
     // Add a friend by user ID

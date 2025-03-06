@@ -25,4 +25,10 @@
         android:label="@string/title_chatrooms"
         tools:layout="@layout/fragment_chatrooms" />
 
+    <fragment
+        android:id="@+id/navigation_search"
+        android:name="com.example.ggconnect.ui.search.SearchFragment"
+        android:label="@string/title_search"
+        tools:layout="@layout/fragment_search" />
+
 </navigation>

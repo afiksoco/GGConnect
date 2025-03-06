@@ -16,4 +16,9 @@
         android:icon="@drawable/chat_icon"
         android:title="@string/title_chatrooms" />
 
+    <item
+        android:id="@+id/navigation_search"
+        android:icon="@drawable/chat_icon"
+        android:title="@string/title_search" />
+
 </menu>

@@ -1,23 +1,24 @@
 package com.example.ggconnect.ui.profile
 
+import GameAdapter
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
-import com.bumptech.glide.Glide
 import com.example.ggconnect.LoginActivity
+
+import com.example.ggconnect.adapters.UserAdapter
 import com.example.ggconnect.data.firebase.AuthService
 import com.example.ggconnect.data.firebase.FirestoreService
 import com.example.ggconnect.data.firebase.StorageService
 import com.example.ggconnect.data.models.User
 import com.example.ggconnect.databinding.FragmentProfileBinding
-import com.google.firebase.auth.FirebaseAuth
+import com.example.ggconnect.utils.ImageLoader
 
 class ProfileFragment : Fragment() {
 
@@ -37,14 +38,17 @@ class ProfileFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentProfileBinding.inflate(inflater, container, false)
+        ImageLoader.init(requireContext()) // Initialize ImageLoader
         setupUI()
         loadUserProfile()
+//        firestoreService.saveGamesToFirestore()
         return binding.root
     }
 
     private fun setupUI() {
         binding.profileImageView.setOnClickListener { pickImage.launch("image/*") }
         binding.mainBTNSignout.setOnClickListener { signOutUser() }
+        binding.favoriteGamesRecyclerView
     }
 
     private fun loadUserProfile() {
@@ -53,14 +57,16 @@ class ProfileFragment : Fragment() {
         firestoreService.getUserProfile(userId) { user ->
             user?.let { displayUserProfile(it) }
         }
+//        loadAllGames() // Load all games instead of filtering by favorites
+
     }
 
     private fun displayUserProfile(user: User) {
-        binding.textProfile.text = user.displayName
-        Glide.with(this)
-            .load(user.profilePicUrl)
-            .placeholder(com.example.ggconnect.R.drawable.unavailable_photo)
-            .into(binding.profileImageView)
+        binding.textProfileName.text = user.displayName
+        ImageLoader.getInstance().loadImage(
+            source = user.profilePicUrl,
+            imageView = binding.profileImageView
+        )
     }
 
     private fun uploadProfilePicture(imageUri: Uri) {
@@ -103,4 +109,23 @@ class ProfileFragment : Fragment() {
         super.onDestroyView()
         _binding = null
     }
+
+
+    private fun loadAllGames() {
+        firestoreService.getGames { games ->
+            binding.favoriteGamesRecyclerView.apply {
+                adapter = GameAdapter(games)
+                setHasFixedSize(true)
+            }
+        }
+    }
+
+
+    fun loadFriendsList(friendIds: List<String>) {
+        firestoreService.getFriendsProfiles(friendIds) { friends ->
+            binding.friendsRecyclerView.adapter = UserAdapter(friends)
+        }
+    }
+
+
 }
