@@ -23,6 +23,11 @@ class Constants {
         // Firebase Realtime Database Paths
         fun getChatRoomPath(chatRoomId: String) = "${DB.CHAT_ROOMS_COLLECTION}/$chatRoomId"
     }
+
+    object SearchSuffixes {
+        const val USER_SUFFIX = "/u"
+        const val GAME_SUFFIX = "/g"
+    }
 }
 
 

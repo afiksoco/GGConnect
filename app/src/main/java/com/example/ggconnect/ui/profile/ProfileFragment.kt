@@ -38,7 +38,6 @@ class ProfileFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentProfileBinding.inflate(inflater, container, false)
-        ImageLoader.init(requireContext()) // Initialize ImageLoader
         setupUI()
         loadUserProfile()
 //        firestoreService.saveGamesToFirestore()

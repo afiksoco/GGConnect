@@ -6,6 +6,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.ggconnect.data.models.Game
 import com.example.ggconnect.data.models.User
 import com.example.ggconnect.databinding.ItemSearchResultBinding
+import com.example.ggconnect.utils.Constants
 import com.example.ggconnect.utils.ImageLoader
 
 class SearchResultAdapter(
@@ -38,17 +39,17 @@ class SearchResultAdapter(
         fun bind(item: SearchItem) {
             when (item) {
                 is SearchItem.UserItem -> {
-                    binding.textSearchResultTitle.text = "/u ${item.user.displayName}"
+                    binding.textSearchResultTitle.text = "${Constants.SearchSuffixes.USER_SUFFIX} ${item.user.displayName}"
                     ImageLoader.getInstance().loadImage(item.user.profilePicUrl, binding.imageSearchResult)
                 }
                 is SearchItem.GameItem -> {
-                    binding.textSearchResultTitle.text = "/g ${item.game.title}"
+                    binding.textSearchResultTitle.text = "${Constants.SearchSuffixes.GAME_SUFFIX} ${item.game.title}"
                     ImageLoader.getInstance().loadImage(item.game.imageUrl, binding.imageSearchResult)
                 }
 
                 else -> {}
             }
-            binding.buttonAction.visibility = View.GONE // Hide action button for now
+//            binding.buttonAction.visibility = View.GONE // Hide action button for now
         }
     }
 }
