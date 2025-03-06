@@ -1,10 +1,6 @@
-// SearchAdapter.kt
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.example.ggconnect.data.models.Game
-import com.example.ggconnect.data.models.User
 import com.example.ggconnect.databinding.ItemSearchResultBinding
 import com.example.ggconnect.utils.Constants
 import com.example.ggconnect.utils.ImageLoader
@@ -41,10 +37,12 @@ class SearchResultAdapter(
                 is SearchItem.UserItem -> {
                     binding.textSearchResultTitle.text = "${Constants.SearchSuffixes.USER_SUFFIX} ${item.user.displayName}"
                     ImageLoader.getInstance().loadImage(item.user.profilePicUrl, binding.imageSearchResult)
+                    binding.buttonAction.setImageResource(android.R.drawable.ic_input_add) // Example icon
                 }
                 is SearchItem.GameItem -> {
                     binding.textSearchResultTitle.text = "${Constants.SearchSuffixes.GAME_SUFFIX} ${item.game.title}"
                     ImageLoader.getInstance().loadImage(item.game.imageUrl, binding.imageSearchResult)
+                    binding.buttonAction.setImageResource(android.R.drawable.btn_star) // Example icon
                 }
 
                 else -> {}
