@@ -2,7 +2,7 @@ package com.example.ggconnect.data.models
 
 
 data class Game private constructor(
-    val id: String,
+    var id: String,
     val title: String,
     var genre: String,
     val imageUrl: String,  // URL to the game image in Firebase Storage

@@ -106,14 +106,26 @@ class FirestoreService(
 
     fun saveGamesToFirestore() {
         val gamesCollection = firestore.collection(Constants.DB.GAMES_COLLECTION)
-        DataManager.generateGameList().forEach { game ->
-            val documentId = UUID.randomUUID().toString()
 
-            gamesCollection.add(game)
-                .addOnSuccessListener { Log.d("games to db", "game $documentId") }
-                .addOnFailureListener { e -> Log.d("failed games", "game $documentId") }
+        DataManager.generateGameList().forEach { game ->
+            // Generate a new document ID
+            val documentRef = gamesCollection.document()
+            val documentId = documentRef.id
+
+            // Update the Game object with the document ID
+            val updatedGame = game.copy(id = documentId)
+
+            // Save the Game object with the ID set
+            documentRef.set(updatedGame)
+                .addOnSuccessListener {
+                    Log.d("FirestoreService", "Game saved with ID: $documentId")
+                }
+                .addOnFailureListener { e ->
+                    Log.e("FirestoreService", "Failed to save game: $documentId", e)
+                }
         }
     }
+
 
     // Add a friend by user ID
     fun addFriend(targetUserId: String, onResult: (Boolean) -> Unit) {
