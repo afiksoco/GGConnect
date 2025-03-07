@@ -41,15 +41,25 @@
             <!-- Title for Game/User -->
             <TextView
                 android:id="@+id/text_search_result_title"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_toEndOf="@id/card_view_pic"
+                android:layout_toStartOf="@id/button_action"
                 android:layout_centerVertical="true"
                 android:layout_marginStart="12dp"
+                android:layout_marginEnd="8dp"
                 android:text="Search Result Title"
                 android:textSize="18sp"
                 android:textColor="@android:color/black"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:maxLines="1"
+                android:ellipsize="marquee"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:scrollHorizontally="true"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:singleLine="true"/>
+
 
             <!-- Add/Like Button -->
             <ImageView

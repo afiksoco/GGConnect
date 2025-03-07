@@ -8,6 +8,7 @@ class Constants {
         const val GAMES_COLLECTION = "games"
         const val CHAT_ROOMS_COLLECTION = "chat_rooms"
         const val FRIEND_COLLECTION = "friends"
+        const val FAV_GAMES_COLLECTION = "favoriteGames"
     }
 
     object Storage {

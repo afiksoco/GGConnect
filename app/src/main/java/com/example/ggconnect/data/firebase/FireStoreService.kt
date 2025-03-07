@@ -6,14 +6,15 @@ import com.example.ggconnect.data.DataManager
 import com.example.ggconnect.data.models.Game
 import com.example.ggconnect.data.models.User
 import com.example.ggconnect.utils.Constants
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import java.util.UUID
-import kotlin.uuid.Uuid
 
 class FirestoreService(
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
 ) {
+    val authService = AuthService()
 
     // Save or update a user profile
     fun saveUserProfile(user: User, onResult: (Boolean) -> Unit) {
@@ -31,7 +32,6 @@ class FirestoreService(
             }
             .addOnFailureListener { onResult(null) }
     }
-
 
 
     // Retrieve all games
@@ -54,7 +54,6 @@ class FirestoreService(
                 onResult(emptyList())
             }
     }
-
 
 
     // FirestoreService.kt
@@ -87,7 +86,6 @@ class FirestoreService(
     }
 
 
-
     fun getFriendsProfiles(friendIds: List<String>, onResult: (List<User>) -> Unit) {
         if (friendIds.isEmpty()) {
             onResult(emptyList())
@@ -113,23 +111,73 @@ class FirestoreService(
 
             gamesCollection.add(game)
                 .addOnSuccessListener { Log.d("games to db", "game $documentId") }
-                .addOnFailureListener { e ->Log.d("failed games", "game $documentId") }
+                .addOnFailureListener { e -> Log.d("failed games", "game $documentId") }
         }
     }
 
     // Add a friend by user ID
-    fun addFriend(userId: String, friendId: String, onResult: (Boolean) -> Unit) {
-        firestore.collection(Constants.DB.USERS_COLLECTION).document(userId)
-            .update(Constants.DB.FRIEND_COLLECTION, FieldValue.arrayUnion(friendId))
+    fun addFriend(targetUserId: String, onResult: (Boolean) -> Unit) {
+        val currentUserID = authService.getCurrentUser()?.uid ?: return
+        val user = firestore.collection(Constants.DB.USERS_COLLECTION).document(currentUserID)
+        user.update(Constants.DB.FRIEND_COLLECTION, FieldValue.arrayUnion(targetUserId))
+            .addOnSuccessListener { onResult(true) }
+            .addOnFailureListener { onResult(false) }
+        val targetUser = firestore.collection(Constants.DB.USERS_COLLECTION).document(targetUserId)
+        targetUser.update(Constants.DB.FRIEND_COLLECTION, FieldValue.arrayUnion(currentUserID))
+
+    }
+
+    // Remove a friend by user ID
+    fun removeFriend(targetUserId: String, onResult: (Boolean) -> Unit) {
+        val currentUserID = authService.getCurrentUser()?.uid ?: return
+        val user = firestore.collection(Constants.DB.USERS_COLLECTION).document(currentUserID)
+        user.update(Constants.DB.FRIEND_COLLECTION, FieldValue.arrayRemove(targetUserId))
+            .addOnSuccessListener { onResult(true) }
+            .addOnFailureListener { onResult(false) }
+        val targetUser = firestore.collection(Constants.DB.USERS_COLLECTION).document(targetUserId)
+        targetUser.update(Constants.DB.FRIEND_COLLECTION, FieldValue.arrayRemove(currentUserID))
+
+    }
+
+    fun likeGame(gameId: String, onResult: (Boolean) -> Unit) {
+        val currentUserID = authService.getCurrentUser()?.uid ?: return
+        val user = firestore.collection(Constants.DB.USERS_COLLECTION).document(currentUserID)
+        user.update(Constants.DB.FAV_GAMES_COLLECTION, FieldValue.arrayUnion(gameId))
             .addOnSuccessListener { onResult(true) }
             .addOnFailureListener { onResult(false) }
     }
 
-    // Remove a friend by user ID
-    fun removeFriend(userId: String, friendId: String, onResult: (Boolean) -> Unit) {
-        firestore.collection(Constants.DB.USERS_COLLECTION).document(userId)
-            .update(Constants.DB.FRIEND_COLLECTION, FieldValue.arrayRemove(friendId))
+    fun unlikeGame(gameId: String, onResult: (Boolean) -> Unit) {
+        val currentUserID = authService.getCurrentUser()?.uid ?: return
+        val userRef = firestore.collection(Constants.DB.USERS_COLLECTION).document(currentUserID)
+        userRef.update(Constants.DB.FAV_GAMES_COLLECTION, FieldValue.arrayRemove(gameId))
             .addOnSuccessListener { onResult(true) }
             .addOnFailureListener { onResult(false) }
     }
+
+
+    fun fetchLikedGames(userId: String, onResult: (List<String>) -> Unit) {
+        firestore.collection(Constants.DB.USERS_COLLECTION)
+            .document(userId)
+            .get()
+            .addOnSuccessListener { document ->
+                val likedGames =
+                    document.get(Constants.DB.FAV_GAMES_COLLECTION) as? List<String> ?: emptyList()
+                onResult(likedGames)
+            }
+            .addOnFailureListener { onResult(emptyList()) }
+    }
+
+    fun fetchFriends(userId: String, onResult: (List<String>) -> Unit) {
+        firestore.collection(Constants.DB.USERS_COLLECTION)
+            .document(userId)
+            .get()
+            .addOnSuccessListener { document ->
+                val friendsList =
+                    document.get(Constants.DB.FRIEND_COLLECTION) as? List<String> ?: emptyList()
+                onResult(friendsList)
+            }
+            .addOnFailureListener { onResult(emptyList()) }
+    }
+
 }

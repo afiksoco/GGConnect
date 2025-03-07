@@ -18,7 +18,7 @@
 
     <item
         android:id="@+id/navigation_search"
-        android:icon="@drawable/chat_icon"
+        android:icon="@drawable/search_svgrepo_com"
         android:title="@string/title_search" />
 
 </menu>
