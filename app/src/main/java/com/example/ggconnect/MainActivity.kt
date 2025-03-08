@@ -32,7 +32,8 @@ class MainActivity : AppCompatActivity() {
             setOf(
                 R.id.navigation_profile,
                 R.id.navigation_feed,
-                R.id.navigation_chatrooms
+                R.id.navigation_chatrooms,
+                R.id.navigation_search
             )
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
