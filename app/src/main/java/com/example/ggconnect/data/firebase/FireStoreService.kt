@@ -6,10 +6,9 @@ import com.example.ggconnect.data.DataManager
 import com.example.ggconnect.data.models.Game
 import com.example.ggconnect.data.models.User
 import com.example.ggconnect.utils.Constants
-import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
-import java.util.UUID
 
 class FirestoreService(
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
@@ -168,7 +167,8 @@ class FirestoreService(
     }
 
 
-    fun fetchLikedGames(userId: String, onResult: (List<String>) -> Unit) {
+    fun fetchLikedGames(onResult: (List<String>) -> Unit) {
+        val userId = authService.getCurrentUser()?.uid ?: return
         firestore.collection(Constants.DB.USERS_COLLECTION)
             .document(userId)
             .get()
@@ -180,7 +180,9 @@ class FirestoreService(
             .addOnFailureListener { onResult(emptyList()) }
     }
 
-    fun fetchFriends(userId: String, onResult: (List<String>) -> Unit) {
+    fun fetchFriends(onResult: (List<String>) -> Unit) {
+        val userId = authService.getCurrentUser()?.uid ?: return
+
         firestore.collection(Constants.DB.USERS_COLLECTION)
             .document(userId)
             .get()
@@ -190,6 +192,21 @@ class FirestoreService(
                 onResult(friendsList)
             }
             .addOnFailureListener { onResult(emptyList()) }
+    }
+
+    fun getUserDisplayNames(userIds: List<String>, callback: (List<String>) -> Unit) {
+        firestore.collection("users")
+            .whereIn(FieldPath.documentId(), userIds)
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                val displayNames = querySnapshot.documents.mapNotNull {
+                    it.getString("displayName")
+                }
+                callback(displayNames)
+            }
+            .addOnFailureListener {
+                callback(emptyList()) // Return an empty list on failure
+            }
     }
 
 }

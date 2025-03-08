@@ -123,13 +123,10 @@ class SearchFragment : Fragment() {
             searchResultAdapter.updateItems(emptyList(), emptyList(), emptyList())
             return
         }
-
-        val userId = authService.getCurrentUser()?.uid ?: return
-
         // Fetch FRIENDS first
-        firestoreService.fetchFriends(userId) { friendlist ->
+        firestoreService.fetchFriends{ friendlist ->
             // fetch games
-            firestoreService.fetchLikedGames(userId) { likedGames ->
+            firestoreService.fetchLikedGames{ likedGames ->
                 // Then fetch search results and pass liked games to the adapter
                 firestoreService.searchUsersAndGames(query) { results ->
                     searchResultAdapter.updateItems(results, likedGames, friendlist)

@@ -1,4 +1,4 @@
-package com.example.ggconnect.ui.chatrooms
+package com.example.ggconnect.ui.chat
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData

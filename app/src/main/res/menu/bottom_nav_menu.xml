@@ -12,7 +12,7 @@
         android:title="@string/title_feed" />
 
     <item
-        android:id="@+id/navigation_chatrooms"
+        android:id="@+id/navigation_chatlist"
         android:icon="@drawable/chat_icon"
         android:title="@string/title_chatrooms" />
 
