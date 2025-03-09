@@ -39,12 +39,12 @@ class MessageAdapter : RecyclerView.Adapter<MessageAdapter.MessageViewHolder>() 
             val layoutParams = binding.messageTextView.layoutParams as ConstraintLayout.LayoutParams
 
             if (message.senderId == currentUserId) {
-                // Apply sent message style (light blue, aligned to the right)
+                // light blue, aligned to the right
                 binding.messageTextView.setBackgroundResource(R.drawable.bg_message_sent)
                 layoutParams.startToStart = ConstraintLayout.LayoutParams.UNSET
                 layoutParams.endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
             } else {
-                // Apply received message style (light white, aligned to the left)
+                // light white, aligned to the left
                 binding.messageTextView.setBackgroundResource(R.drawable.bg_message_received)
                 layoutParams.endToEnd = ConstraintLayout.LayoutParams.UNSET
                 layoutParams.startToStart = ConstraintLayout.LayoutParams.PARENT_ID
