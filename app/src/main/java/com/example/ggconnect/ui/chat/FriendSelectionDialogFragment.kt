@@ -60,7 +60,7 @@ class FriendSelectionDialogFragment : DialogFragment(),FreindClickListener {
             .commit()
 
         // Load chat data based on the selected friend
-        chatRoomFragment.loadChatData(friend.id)
+//        chatRoomFragment.loadChatData(friend.id)
     }
 
 

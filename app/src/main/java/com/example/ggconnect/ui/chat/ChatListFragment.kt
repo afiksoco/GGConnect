@@ -78,6 +78,9 @@ class ChatListFragment : Fragment(), ChatRoomClickListener {
                 for (chatSnapshot in snapshot.children) {
                     val chatRoom = chatSnapshot.getValue(ChatRoom::class.java)
                     chatRoom?.let { room ->
+                        // Set the room ID from the snapshot key
+                        room.id = chatSnapshot.key ?: ""
+
                         val userIds = room.members.keys.filter { it != currentUserId }
 
                         // Fetch display names of all members asynchronously
@@ -141,7 +144,7 @@ class ChatListFragment : Fragment(), ChatRoomClickListener {
     }
 
     override fun onChatRoomClick(chatRoomId: String) {
-        val action = ChatListFragmentDirections.actionChatListToChatRoom()
+        val action = ChatListFragmentDirections.actionChatListToChatRoom(chatRoomId)
         view?.findNavController()?.navigate(action)
     }
 

@@ -1,7 +1,7 @@
 package com.example.ggconnect.data.models
 
 data class ChatRoom(
-    val id: String = "",
+    var id: String = "",
     var name: List<String> = emptyList(),
     val members: Map<String, Boolean> = emptyMap(),
     val lastMessage: String = "",

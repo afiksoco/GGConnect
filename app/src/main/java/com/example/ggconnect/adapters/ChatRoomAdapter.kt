@@ -34,6 +34,7 @@ class ChatRoomAdapter(private val listener: ChatRoomClickListener) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(chatRoom: ChatRoom) {
+            chatRoom.id
             val displayNameText = if (chatRoom.name.size > 1) {
                 chatRoom.name.joinToString(", ")
             } else {
