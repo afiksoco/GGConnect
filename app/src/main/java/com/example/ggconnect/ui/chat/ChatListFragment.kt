@@ -32,7 +32,6 @@ class ChatListFragment : Fragment(), ChatRoomClickListener {
         _binding = FragmentChatListBinding.inflate(inflater, container, false)
         setupRecyclerView()
         loadChatRooms()
-        setupAddChatButton()
 //        addTestChatToDatabase()
         return binding.root
     }
@@ -99,39 +98,6 @@ class ChatListFragment : Fragment(), ChatRoomClickListener {
         })
     }
 
-
-
-
-    private fun setupAddChatButton() {
-        binding.addChatButton.setOnClickListener {
-            // Fetch friend IDs first
-            FirestoreService().fetchFriends { friendIds ->
-                if (friendIds.isNotEmpty()) {
-                    // Fetch detailed profiles for these friend IDs
-                    FirestoreService().getFriendsProfiles(friendIds) { friends ->
-                        if (friends.isNotEmpty()) {
-//                            val selectFriendDialog = FriendSelectionDialogFragment.newInstance(friends) { selectedFriend ->
-//                                createChatRoom(selectedFriend.id)
-//                            }
-                            FriendSelectionDialogFragment().show(childFragmentManager, "SelectFriendDialog")
-                        } else {
-                            showToast("No friends available.")
-                        }
-                    }
-                } else {
-                    showToast("No friends available.")
-                }
-            }
-        }
-    }
-
-    private fun createChatRoom(friendId: String) {
-//        val chatRoomId = "chat_${FirebaseAuth.getInstance().uid}_$friendId"
-//        parentFragmentManager.beginTransaction()
-//            .replace(R.id.nav_host_fragment_activity_main, ChatRoomFragment.newInstance(chatRoomId))
-//            .addToBackStack(null)
-//            .commit()
-    }
 
     private fun showToast(message: String) {
         Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
