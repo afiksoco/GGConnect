@@ -9,16 +9,15 @@ class RealtimeDatabaseService {
 
     private val database = FirebaseDatabase.getInstance()
 
-    // Function to send a message to a specific chatroom
     fun sendMessage(
         chatroomId: String,
         message: Message,
         onSuccess: () -> Unit = {},
         onFailure: (Exception) -> Unit = {}
     ) {
-        val messageId = database.getReference("${Constants.DB.CHATS}/$chatroomId/${Constants.DB.MESSAGES}").push().key
+        val messageId = database.getReference(Constants.Pathes.getMessagesPath(chatroomId)).push().key
         messageId?.let {
-            val messageRef = database.getReference("${Constants.DB.CHATS}/$chatroomId/${Constants.DB.MESSAGES}/$messageId")
+            val messageRef = database.getReference("${Constants.Pathes.getMessagesPath(chatroomId)}/$messageId")
             messageRef.setValue(message)
                 .addOnSuccessListener {
                     onSuccess()
@@ -39,11 +38,9 @@ class RealtimeDatabaseService {
         chatRoomRef.child(Constants.DB.TIMESTAMP).setValue(message.timestamp)
     }
 
-
     fun getChatRoomReference(chatRoomId: String): DatabaseReference {
-        return database.getReference("chats/$chatRoomId")
+        return database.getReference(Constants.Pathes.getChatRoomPath(chatRoomId))
     }
-
 
     fun getOrCreateChatRoom(userIds: List<String>, onResult: (String) -> Unit) {
         val chatRoomsRef = database.getReference(Constants.DB.CHATS)
@@ -126,4 +123,35 @@ class RealtimeDatabaseService {
             onResult(emptyList())
         }
     }
+
+    fun addUserToGameChannel(gameId: String, uid: String?) {
+        if (uid == null) return
+
+        val channelId = "${Constants.DB.CHANNEL_PREFIX}$gameId"
+        val membersRef = database.getReference(Constants.Pathes.getMembersPath(channelId))
+
+        membersRef.child(uid).setValue(true)
+            .addOnSuccessListener {
+                println("User $uid successfully added to channel $channelId")
+            }
+            .addOnFailureListener { error ->
+                println("Failed to add user $uid to channel $channelId: ${error.message}")
+            }
+    }
+
+    fun removeUserFromGameChannel(gameId: String, uid: String?) {
+        if (uid == null) return
+
+        val channelId = "${Constants.DB.CHANNEL_PREFIX}$gameId"
+        val membersRef = database.getReference(Constants.Pathes.getMembersPath(channelId))
+
+        membersRef.child(uid).removeValue()
+            .addOnSuccessListener {
+                println("User $uid successfully removed from channel $channelId")
+            }
+            .addOnFailureListener { error ->
+                println("Failed to remove user $uid from channel $channelId: ${error.message}")
+            }
+    }
+
 }

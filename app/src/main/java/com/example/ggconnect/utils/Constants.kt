@@ -2,6 +2,8 @@ package com.example.ggconnect.utils
 
 class Constants {
     object DB {
+
+
         // Firestore Collections
         const val USERS_COLLECTION = "users"
         const val GAMES_COLLECTION = "games"
@@ -17,6 +19,8 @@ class Constants {
         const val LAST_MESSAGE = "lastMessage"
         const val TIMESTAMP = "timestamp"
         const val TYPING = "typing"
+        const val CHANNEL_PREFIX = "channel_"
+
     }
 
     object Storage {

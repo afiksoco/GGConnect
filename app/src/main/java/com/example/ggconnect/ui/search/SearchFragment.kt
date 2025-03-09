@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.ggconnect.data.firebase.AuthService
 import com.example.ggconnect.data.firebase.FirestoreService
 import com.example.ggconnect.databinding.FragmentSearchBinding
+import com.example.ggconnect.ui.chat.RealtimeDatabaseService
 
 class SearchFragment : Fragment() {
 
@@ -22,6 +23,7 @@ class SearchFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val firestoreService = FirestoreService()
+    private val realtimeDatabaseService = RealtimeDatabaseService()
     private val authService = AuthService()
     private val searchResultAdapter = SearchResultAdapter()
 
@@ -74,6 +76,8 @@ class SearchFragment : Fragment() {
 
                     firestoreService.likeGame(gameId) { success ->
                         if (success) {
+                            realtimeDatabaseService.addUserToGameChannel(gameId, authService.getCurrentUser()?.uid)
+
                             Toast.makeText(requireContext(), "Game liked!", Toast.LENGTH_SHORT)
                                 .show()
                         } else {
@@ -89,6 +93,8 @@ class SearchFragment : Fragment() {
                 override fun onUnlikeGameClick(gameId: String) {
                     firestoreService.unlikeGame(gameId) { success ->
                         if (success) {
+                            realtimeDatabaseService.removeUserFromGameChannel(gameId, authService.getCurrentUser()?.uid)
+
                             Toast.makeText(requireContext(), "Game unliked!", Toast.LENGTH_SHORT)
                                 .show()
                         } else {
@@ -99,7 +105,10 @@ class SearchFragment : Fragment() {
                             ).show()
                         }
                     }
+                }
 
+                override fun onMessageClick(targetUserId: String) {
+                    TODO("Not yet implemented")
                 }
 
             }

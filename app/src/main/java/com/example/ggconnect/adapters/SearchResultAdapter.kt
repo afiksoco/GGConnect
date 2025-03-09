@@ -1,6 +1,8 @@
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.example.ggconnect.R
 import com.example.ggconnect.databinding.ItemSearchResultBinding
 import com.example.ggconnect.utils.Constants
 import com.example.ggconnect.utils.ImageLoader
@@ -55,6 +57,7 @@ class SearchResultAdapter(
                         if (isFriend) android.R.drawable.ic_delete else android.R.drawable.ic_input_add
 
                     binding.buttonAction.setImageResource(addIcon)
+                    binding.buttonActionMessage.setImageResource(R.drawable.chat_icon_search_frag)
 
                     binding.buttonAction.setOnClickListener {
                         if (isFriend) {
@@ -65,6 +68,11 @@ class SearchResultAdapter(
                             binding.buttonAction.setImageResource(android.R.drawable.ic_delete)
                         }
                         isFriend = !isFriend
+                    }
+
+                    // New: Handle Message Button Click
+                    binding.buttonActionMessage.setOnClickListener {
+                        searchResultAdapterCallback?.onMessageClick(item.user.id)
                     }
                 }
 
@@ -89,13 +97,16 @@ class SearchResultAdapter(
                         }
                         isLiked = !isLiked
                     }
+
+                    // Hide the message button for games
+                    binding.buttonActionMessage.visibility = View.GONE
                 }
 
                 else -> {}
             }
-            // enables to scrolling if the string is 2 long!
-            binding.textSearchResultTitle.isSelected = true
 
+            // Enables scrolling if the string is too long
+            binding.textSearchResultTitle.isSelected = true
         }
     }
 }
