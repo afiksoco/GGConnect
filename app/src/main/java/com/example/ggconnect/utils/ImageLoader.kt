@@ -11,18 +11,25 @@ import java.lang.ref.WeakReference
 class ImageLoader private constructor(context: Context) {
     private val contextRef = WeakReference(context)
 
-    fun loadImage(source: String, imageView: ImageView, placeholder: Int = R.drawable.unavailable_photo) {
+    fun loadImage(source: String?, imageView: ImageView, placeholder: Int = R.drawable.unavailable_photo) {
         contextRef.get()?.let { context ->
-            if (source.startsWith("gs://")) {
-                // Handle Firebase Storage references
-                val storageRef = FirebaseStorage.getInstance().getReferenceFromUrl(source)
-                storageRef.downloadUrl.addOnSuccessListener { uri ->
-                    loadImageFromUrl(uri, imageView, placeholder)
-                }.addOnFailureListener {
-                    imageView.setImageResource(placeholder)
+            // Clear the existing image to avoid flickering or wrong images
+            Glide.with(imageView.context).clear(imageView)
+
+            if (!source.isNullOrEmpty()) {
+                if (source.startsWith("gs://")) {
+                    // Handle Firebase Storage references
+                    val storageRef = FirebaseStorage.getInstance().getReferenceFromUrl(source)
+                    storageRef.downloadUrl.addOnSuccessListener { uri ->
+                        loadImageFromUrl(uri, imageView, placeholder)
+                    }.addOnFailureListener {
+                        imageView.setImageResource(placeholder)
+                    }
+                } else {
+                    loadImageFromUrl(Uri.parse(source), imageView, placeholder)
                 }
             } else {
-                loadImageFromUrl(Uri.parse(source), imageView, placeholder)
+                imageView.setImageResource(placeholder) // Use placeholder if source is null or empty
             }
         }
     }

@@ -194,6 +194,22 @@ class FirestoreService(
             .addOnFailureListener { onResult(emptyList()) }
     }
 
+    fun getUserProfileImageUrl(userId: String, onResult: (String?) -> Unit) {
+        val userRef = FirebaseFirestore.getInstance().collection(Constants.DB.USERS_COLLECTION)
+            .document(userId)
+        userRef.get().addOnSuccessListener { document ->
+            if (document != null && document.contains(Constants.DB.PROFILE_PIC_COLLECTION)) {
+                val imageUrl = document.getString(Constants.DB.PROFILE_PIC_COLLECTION)
+                onResult(imageUrl)
+            } else {
+                onResult(null)
+            }
+        }.addOnFailureListener {
+            onResult(null)
+        }
+    }
+
+
     fun getUserDisplayNames(userIds: List<String>, callback: (List<String>) -> Unit) {
         firestore.collection("users")
             .whereIn(FieldPath.documentId(), userIds)

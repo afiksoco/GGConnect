@@ -2,6 +2,7 @@ package com.example.ggconnect.ui.chat
 
 import MessageAdapter
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,12 +14,14 @@ import com.example.ggconnect.data.firebase.FirestoreService
 import com.example.ggconnect.data.models.Message
 import com.example.ggconnect.databinding.FragmentChatRoomBinding
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.ChildEventListener
 
 class ChatRoomFragment : Fragment() {
 
+
     private var _binding: FragmentChatRoomBinding? = null
     private val binding get() = _binding!!
-
+    private var messageListener: ChildEventListener? = null
     private val args: ChatRoomFragmentArgs by navArgs()
     private val databaseService = RealtimeDatabaseService()
     private val messageAdapter = MessageAdapter()
@@ -60,7 +63,8 @@ class ChatRoomFragment : Fragment() {
                 sendMessage(messageText)
                 binding.messageInput.setText("")
             } else {
-                Toast.makeText(requireContext(), "Message cannot be empty", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Message cannot be empty", Toast.LENGTH_SHORT)
+                    .show()
             }
         }
     }
@@ -80,31 +84,60 @@ class ChatRoomFragment : Fragment() {
                     binding.chatMessagesRecyclerView.scrollToPosition(messageAdapter.itemCount - 1)
                 },
                 onFailure = { error ->
-                    Toast.makeText(requireContext(), "Failed to send message: ${error.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        requireContext(),
+                        "Failed to send message: ${error.message}",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             )
         }
     }
 
     private fun loadMessages(chatRoomId: String) {
-        databaseService.listenForMessages(chatRoomId) { message ->
-            messageAdapter.addMessage(message)
-            // Scroll to the latest message
-            binding.chatMessagesRecyclerView.scrollToPosition(messageAdapter.itemCount - 1)
+        // Remove any existing listener to avoid duplicate triggers
+        messageListener?.let {
+            databaseService.removeMessageListener(chatRoomId, it)
         }
-    }
 
-    private fun loadChatRoomName(chatRoomId: String) {
-        databaseService.getChatRoomMembers(chatRoomId) { memberIds ->
-            FirestoreService().getUserDisplayNames(memberIds) { displayNames ->
-                val title = displayNames.joinToString(", ")
-                binding.chatRoomTitle.text = title
+        // Add a new listener and keep a reference to it
+        messageListener = databaseService.listenForMessages(chatRoomId) { message ->
+            if (_binding != null) {
+                messageAdapter.addMessage(message)
+                binding.chatMessagesRecyclerView.scrollToPosition(messageAdapter.itemCount - 1)
+            } else {
+                Log.e("ChatRoomFragment", "Binding is null, cannot update UI")
             }
         }
     }
 
+
+    private fun loadChatRoomName(chatRoomId: String) {
+        val chatRoomRef = databaseService.getChatRoomReference(chatRoomId)
+
+        chatRoomRef.child("name").get().addOnSuccessListener { snapshot ->
+            val chatRoomName = snapshot.getValue(String::class.java) ?: "Unknown Chat"
+            binding.chatRoomTitle.text = chatRoomName
+        }.addOnFailureListener {
+            Toast.makeText(
+                requireContext(),
+                "Failed to load chat room name: ${it.message}",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
+
     override fun onDestroyView() {
         super.onDestroyView()
+
+        messageListener?.let {
+            chatRoomId?.let { chatId ->
+                databaseService.removeMessageListener(chatId, it)
+            }
+        }
+
         _binding = null
     }
+
 }
