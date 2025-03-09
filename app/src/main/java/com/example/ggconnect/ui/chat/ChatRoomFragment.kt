@@ -27,7 +27,7 @@ class ChatRoomFragment : Fragment() {
     private val messageAdapter = MessageAdapter()
 
     private var chatRoomId: String? = null
-
+    private var chatRoomName: String? = null
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -38,13 +38,13 @@ class ChatRoomFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         chatRoomId = args.chatRoomId
+        chatRoomName = args.chatRoomName
+        binding.chatRoomTitle.text = chatRoomName
         setupRecyclerView()
         setupSendButton()
         chatRoomId?.let {
             loadMessages(it)
-            loadChatRoomName(it)
         }
     }
 
@@ -112,20 +112,6 @@ class ChatRoomFragment : Fragment() {
     }
 
 
-    private fun loadChatRoomName(chatRoomId: String) {
-        val chatRoomRef = databaseService.getChatRoomReference(chatRoomId)
-
-        chatRoomRef.child("name").get().addOnSuccessListener { snapshot ->
-            val chatRoomName = snapshot.getValue(String::class.java) ?: "Unknown Chat"
-            binding.chatRoomTitle.text = chatRoomName
-        }.addOnFailureListener {
-            Toast.makeText(
-                requireContext(),
-                "Failed to load chat room name: ${it.message}",
-                Toast.LENGTH_SHORT
-            ).show()
-        }
-    }
 
 
     override fun onDestroyView() {

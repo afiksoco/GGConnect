@@ -210,18 +210,17 @@ class FirestoreService(
     }
 
 
-    fun getUserDisplayNames(userIds: List<String>, callback: (List<String>) -> Unit) {
-        firestore.collection("users")
-            .whereIn(FieldPath.documentId(), userIds)
+    // Retrieve a single user's display name by ID
+    fun getUserDisplayName(userId: String, onResult: (String) -> Unit) {
+        firestore.collection(Constants.DB.USERS_COLLECTION)
+            .document(userId)
             .get()
-            .addOnSuccessListener { querySnapshot ->
-                val displayNames = querySnapshot.documents.mapNotNull {
-                    it.getString("displayName")
-                }
-                callback(displayNames)
+            .addOnSuccessListener { document ->
+                val displayName = document.getString("displayName") ?: "Unknown User"
+                onResult(displayName)
             }
             .addOnFailureListener {
-                callback(emptyList()) // Return an empty list on failure
+                onResult("Unknown User")
             }
     }
 

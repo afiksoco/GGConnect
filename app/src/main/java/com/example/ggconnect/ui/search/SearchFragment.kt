@@ -11,11 +11,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.ggconnect.data.firebase.AuthService
 import com.example.ggconnect.data.firebase.FirestoreService
 import com.example.ggconnect.databinding.FragmentSearchBinding
 import com.example.ggconnect.ui.chat.RealtimeDatabaseService
+import com.google.firebase.auth.FirebaseAuth
 
 class SearchFragment : Fragment() {
 
@@ -70,13 +72,17 @@ class SearchFragment : Fragment() {
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
-                    }                }
+                    }
+                }
 
                 override fun onLikeGameClick(gameId: String) {
 
                     firestoreService.likeGame(gameId) { success ->
                         if (success) {
-                            realtimeDatabaseService.addUserToGameChannel(gameId, authService.getCurrentUser()?.uid)
+                            realtimeDatabaseService.addUserToGameChannel(
+                                gameId,
+                                authService.getCurrentUser()?.uid
+                            )
 
                             Toast.makeText(requireContext(), "Game liked!", Toast.LENGTH_SHORT)
                                 .show()
@@ -93,7 +99,10 @@ class SearchFragment : Fragment() {
                 override fun onUnlikeGameClick(gameId: String) {
                     firestoreService.unlikeGame(gameId) { success ->
                         if (success) {
-                            realtimeDatabaseService.removeUserFromGameChannel(gameId, authService.getCurrentUser()?.uid)
+                            realtimeDatabaseService.removeUserFromGameChannel(
+                                gameId,
+                                authService.getCurrentUser()?.uid
+                            )
 
                             Toast.makeText(requireContext(), "Game unliked!", Toast.LENGTH_SHORT)
                                 .show()
@@ -108,8 +117,23 @@ class SearchFragment : Fragment() {
                 }
 
                 override fun onMessageClick(targetUserId: String) {
-                    TODO("Not yet implemented")
+                    val currentUserId = FirebaseAuth.getInstance().uid ?: return
+                    // Get or create a chat room with the selected user
+                    realtimeDatabaseService.getOrCreateChatRoom(
+                        currentUserId,
+                        targetUserId
+                    ) { chatRoomId ->
+                        // Navigate to ChatRoomFragment with the chatRoomId
+                        firestoreService.getUserDisplayName(targetUserId) { userName ->
+                            val action = SearchFragmentDirections.actionSearchToChatRoom(
+                                chatRoomId,
+                                userName
+                            )
+                            findNavController().navigate(action)
+                        }
+                    }
                 }
+
 
             }
             adapter = searchResultAdapter
@@ -133,9 +157,9 @@ class SearchFragment : Fragment() {
             return
         }
         // Fetch FRIENDS first
-        firestoreService.fetchFriends{ friendlist ->
+        firestoreService.fetchFriends { friendlist ->
             // fetch games
-            firestoreService.fetchLikedGames{ likedGames ->
+            firestoreService.fetchLikedGames { likedGames ->
                 // Then fetch search results and pass liked games to the adapter
                 firestoreService.searchUsersAndGames(query) { results ->
                     searchResultAdapter.updateItems(results, likedGames, friendlist)

@@ -56,7 +56,7 @@ class ChatRoomAdapter(private val listener: ChatRoomClickListener) :
             binding.timestampTextView.text = formattedTime
 
             binding.root.setOnClickListener {
-                listener.onChatRoomClick(chatRoom.id)
+                listener.onChatRoomClick(chatRoom.id, chatRoom.name)
             }
         }
 

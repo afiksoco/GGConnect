@@ -42,28 +42,41 @@ class RealtimeDatabaseService {
         return database.getReference(Constants.Pathes.getChatRoomPath(chatRoomId))
     }
 
-    fun getOrCreateChatRoom(userIds: List<String>, onResult: (String) -> Unit) {
-        val chatRoomsRef = database.getReference(Constants.DB.CHATS)
 
-        chatRoomsRef.orderByChild(Constants.DB.MEMBERS).equalTo(userIds.joinToString(","))
-            .addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    if (snapshot.exists()) {
-                        val chatRoomId = snapshot.children.first().key
-                        chatRoomId?.let { onResult(it) }
-                    } else {
-                        val newChatRoomId = chatRoomsRef.push().key
-                        newChatRoomId?.let {
-                            val membersMap = userIds.associateWith { true }
-                            chatRoomsRef.child(it).child(Constants.DB.MEMBERS).setValue(membersMap)
-                            onResult(it)
-                        }
-                    }
-                }
-
-                override fun onCancelled(error: DatabaseError) {}
-            })
+    fun getPrivateChatRoomId(user1Id: String, user2Id: String): String {
+        val sortedIds = listOf(user1Id, user2Id).sorted()
+        return "chat_${sortedIds[0]}_${sortedIds[1]}"
     }
+
+
+    fun getOrCreateChatRoom(user1Id: String, user2Id: String, onResult: (String) -> Unit) {
+        val chatRoomId = getPrivateChatRoomId(user1Id, user2Id)
+        val chatRoomRef = database.getReference(Constants.Pathes.getChatRoomPath(chatRoomId))
+
+        chatRoomRef.get().addOnSuccessListener { snapshot ->
+            if (snapshot.exists()) {
+                // Chat room already exists
+                onResult(chatRoomId)
+            } else {
+                // Create a new chat room
+                val members = mapOf(
+                    user1Id to true,
+                    user2Id to true
+                )
+                val chatRoomData = mapOf(
+                    Constants.DB.MEMBERS to members,
+                    Constants.DB.TYPE to Constants.ChatRoomType.PRIVATE_CHAT,
+                )
+
+                chatRoomRef.setValue(chatRoomData)
+                    .addOnSuccessListener { onResult(chatRoomId) }
+                    .addOnFailureListener { error ->
+                        println("Failed to create chat room: ${error.message}")
+                    }
+            }
+        }
+    }
+
 
     fun getChatRooms(currentUserId: String, onResult: (List<ChatRoom>) -> Unit) {
         val chatRoomsRef = database.getReference(Constants.DB.CHATS)

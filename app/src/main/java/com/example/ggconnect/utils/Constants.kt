@@ -20,7 +20,7 @@ class Constants {
         const val TIMESTAMP = "timestamp"
         const val TYPING = "typing"
         const val CHANNEL_PREFIX = "channel_"
-
+        const val TYPE = "type"
     }
 
     object Storage {

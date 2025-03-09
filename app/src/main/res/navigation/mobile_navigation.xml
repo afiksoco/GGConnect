@@ -36,13 +36,20 @@
         <argument
             android:name="chatRoomId"
             app:argType="string" />
+        <argument
+            android:name="chatRoomName"
+            app:argType="string" />
     </fragment>
-
 
     <fragment
         android:id="@+id/navigation_search"
         android:name="com.example.ggconnect.ui.search.SearchFragment"
-        android:label="@string/title_search"
-        tools:layout="@layout/fragment_search" />
+        android:label="Search"
+        tools:layout="@layout/fragment_search">
+        <action
+            android:id="@+id/action_search_to_chatRoom"
+            app:destination="@id/chatRoomFragment" />
+    </fragment>
+
 
 </navigation>

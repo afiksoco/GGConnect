@@ -187,42 +187,54 @@ class ChatListFragment : Fragment(), ChatRoomClickListener {
         chatRoomsRef.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val chatRooms = mutableListOf<ChatRoom>()
-                var pendingProfileImages = 0 // Counter for pending image fetches
+                var pendingProfileImages = 0
 
                 for (chatSnapshot in snapshot.children) {
                     val chatRoom = chatSnapshot.getValue(ChatRoom::class.java)
                     chatRoom?.let { room ->
-                        room.id = chatSnapshot.key ?: ""
-                        room.lastMessage = chatSnapshot.child("lastMessage").getValue(String::class.java) ?: ""
-                        room.timestamp = chatSnapshot.child("timestamp").getValue(Long::class.java) ?: 0L
-                        room.name = chatSnapshot.child("name").getValue(String::class.java) ?: "Unknown Chat"
-                        room.roomImageUrl = chatSnapshot.child("roomImageUrl").getValue(String::class.java)
-                        room.type = chatSnapshot.child("type").getValue(Int::class.java) ?: Constants.ChatRoomType.PRIVATE_CHAT
+                        room.id = chatSnapshot.key.orEmpty()
+                        room.lastMessage =
+                            chatSnapshot.child("lastMessage").getValue(String::class.java).orEmpty()
+                        room.timestamp =
+                            chatSnapshot.child("timestamp").getValue(Long::class.java) ?: 0L
+                        room.roomImageUrl =
+                            chatSnapshot.child("roomImageUrl").getValue(String::class.java)
+                        room.type = chatSnapshot.child("type").getValue(Int::class.java)
+                            ?: Constants.ChatRoomType.PRIVATE_CHAT
 
                         if (room.members.containsKey(currentUserId)) {
                             if (room.type == Constants.ChatRoomType.PRIVATE_CHAT) {
-                                // Fetch the profile image of the other user in private chats
-                                val otherUserId = room.members.keys.firstOrNull { it != currentUserId }
+                                // Fetch the display name of the other user in private chats
+                                val otherUserId =
+                                    room.members.keys.firstOrNull { it != currentUserId }
                                 if (otherUserId != null) {
                                     pendingProfileImages++
                                     firestoreService.getUserProfileImageUrl(otherUserId) { imageUrl ->
                                         room.roomImageUrl = imageUrl
-                                        chatRooms.add(room)
                                         pendingProfileImages--
                                         if (pendingProfileImages == 0) {
-                                            updateChatList(chatRooms) // Only update when all images are fetched
+                                            updateChatList(chatRooms)
+                                        }
+                                    }
+
+                                    firestoreService.getUserDisplayName(otherUserId) { displayName ->
+                                        room.name = displayName
+                                        chatRooms.add(room)
+                                        if (pendingProfileImages == 0) {
+                                            updateChatList(chatRooms)
                                         }
                                     }
                                 }
-                            } else {
-                                // Add channels directly as they already have a static image
+                            } else if (room.type == Constants.ChatRoomType.CHANNEL) {
+                                // For channels, use the name from Firebase Realtime Database
+                                room.name = chatSnapshot.child("name").getValue(String::class.java)
+                                    .orEmpty()
                                 chatRooms.add(room)
                             }
                         }
                     }
                 }
 
-                // Fallback in case there are no pending profile image fetches
                 if (pendingProfileImages == 0) {
                     updateChatList(chatRooms)
                 }
@@ -242,8 +254,6 @@ class ChatListFragment : Fragment(), ChatRoomClickListener {
     }
 
 
-
-
     private fun showToast(message: String) {
         Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
     }
@@ -254,8 +264,8 @@ class ChatListFragment : Fragment(), ChatRoomClickListener {
         _binding = null
     }
 
-    override fun onChatRoomClick(chatRoomId: String) {
-        val action = ChatListFragmentDirections.actionChatListToChatRoom(chatRoomId)
+    override fun onChatRoomClick(chatRoomId: String, chatRoomName: String) {
+        val action = ChatListFragmentDirections.actionChatListToChatRoom(chatRoomId, chatRoomName)
         view?.findNavController()?.navigate(action)
     }
 
