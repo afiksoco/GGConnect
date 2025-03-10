@@ -4,11 +4,13 @@ import SearchItem
 import android.util.Log
 import com.example.ggconnect.data.DataManager
 import com.example.ggconnect.data.models.Game
+import com.example.ggconnect.data.models.Post
 import com.example.ggconnect.data.models.User
 import com.example.ggconnect.utils.Constants
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 
 class FirestoreService(
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
@@ -32,6 +34,47 @@ class FirestoreService(
             .addOnFailureListener { onResult(null) }
     }
 
+
+    fun fetchFeedPosts(friendIds: List<String>, onResult: (List<Post>) -> Unit) {
+        firestore.collection("posts")
+            .orderBy("timestamp", Query.Direction.DESCENDING)
+            .get()
+            .addOnSuccessListener { result ->
+                val posts = result.mapNotNull { it.toObject(Post::class.java) }
+                    .filter { it.userId in friendIds }
+                onResult(posts)
+            }
+            .addOnFailureListener {
+                onResult(emptyList())
+            }
+    }
+
+
+    fun createPost(
+        userId: String,
+        userName: String,
+        userProfileImage: String?,
+        gameTitle: String,
+        gameImageUrl: String,
+        onResult: (Boolean) -> Unit = {}
+    ) {
+        val newPost = Post(
+            id = firestore.collection("posts").document().id,
+            userId = userId,
+            userName = userName,
+            userProfileImage = userProfileImage,
+            gameTitle = gameTitle,
+            gameImageUrl = gameImageUrl,
+            timestamp = System.currentTimeMillis(),
+            likes = emptyList()
+        )
+
+        firestore.collection("posts")
+            .document(newPost.id)
+            .set(newPost)
+            .addOnSuccessListener { onResult(true) }
+            .addOnFailureListener { onResult(false) }
+    }
 
     // Retrieve all games
     fun getGames(onResult: (List<Game>) -> Unit) {
@@ -223,5 +266,20 @@ class FirestoreService(
                 onResult("Unknown User")
             }
     }
+
+    fun likePost(postId: String, currentUserId: String, onResult: (Boolean) -> Unit) {
+        val postRef = firestore.collection("posts").document(postId)
+        postRef.update("likes", FieldValue.arrayUnion(currentUserId))
+            .addOnSuccessListener { onResult(true) }
+            .addOnFailureListener { onResult(false) }
+    }
+
+    fun unlikePost(postId: String, currentUserId: String, onResult: (Boolean) -> Unit) {
+        val postRef = firestore.collection("posts").document(postId)
+        postRef.update("likes", FieldValue.arrayRemove(currentUserId))
+            .addOnSuccessListener { onResult(true) }
+            .addOnFailureListener { onResult(false) }
+    }
+
 
 }

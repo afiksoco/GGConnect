@@ -75,17 +75,45 @@ class SearchFragment : Fragment() {
                     }
                 }
 
-                override fun onLikeGameClick(gameId: String) {
+
+
+                override fun onLikeGameClick(
+                    gameId: String,
+                    gameTitle: String,
+                    gameImageUrl: String
+                ) {
+                    val currentUser = authService.getCurrentUser() ?: return
 
                     firestoreService.likeGame(gameId) { success ->
                         if (success) {
+
+                            // Add the user to the game channel
                             realtimeDatabaseService.addUserToGameChannel(
                                 gameId,
-                                authService.getCurrentUser()?.uid
+                                currentUser.uid
                             )
 
-                            Toast.makeText(requireContext(), "Game liked!", Toast.LENGTH_SHORT)
-                                .show()
+                            // Fetch the user's profile from Firestore
+                            firestoreService.getUserProfile(currentUser.uid) { userProfile ->
+                                if (userProfile != null) {
+                                    // Create a post in the feed
+                                    firestoreService.createPost(
+                                        userId = userProfile.id,
+                                        userName = userProfile.displayName,
+                                        userProfileImage = userProfile.profilePicUrl,
+                                        gameTitle = gameTitle,
+                                        gameImageUrl = gameImageUrl
+                                    ) { postSuccess ->
+                                        if (!postSuccess) {
+                                            Toast.makeText(requireContext(), "Failed to create post", Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                                } else {
+                                    Toast.makeText(requireContext(), "Failed to fetch user profile", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+
+                            Toast.makeText(requireContext(), "Game liked!", Toast.LENGTH_SHORT).show()
                         } else {
                             Toast.makeText(
                                 requireContext(),
@@ -95,6 +123,8 @@ class SearchFragment : Fragment() {
                         }
                     }
                 }
+
+
 
                 override fun onUnlikeGameClick(gameId: String) {
                     firestoreService.unlikeGame(gameId) { success ->

@@ -92,7 +92,11 @@ class SearchResultAdapter(
                             searchResultAdapterCallback?.onUnlikeGameClick(item.game.id)
                             binding.buttonAction.setImageResource(android.R.drawable.btn_star)
                         } else {
-                            searchResultAdapterCallback?.onLikeGameClick(item.game.id)
+                            searchResultAdapterCallback?.onLikeGameClick(
+                                item.game.id,
+                                item.game.title,
+                                item.game.imageUrl
+                            )
                             binding.buttonAction.setImageResource(android.R.drawable.btn_star_big_on)
                         }
                         isLiked = !isLiked
