@@ -47,6 +47,15 @@ class RealtimeDatabaseService {
         val sortedIds = listOf(user1Id, user2Id).sorted()
         return "chat_${sortedIds[0]}_${sortedIds[1]}"
     }
+    fun getChatRoomType(chatRoomId: String, callback: (Int) -> Unit) {
+        val chatRoomRef = getChatRoomReference(chatRoomId)
+        chatRoomRef.child(Constants.DB.TYPE).get().addOnSuccessListener { snapshot ->
+            val chatRoomType = snapshot.getValue(Int::class.java) ?: Constants.ChatRoomType.PRIVATE_CHAT
+            callback(chatRoomType)
+        }.addOnFailureListener {
+            callback(Constants.ChatRoomType.PRIVATE_CHAT) // Default to private chat on failure
+        }
+    }
 
 
     fun getOrCreateChatRoom(user1Id: String, user2Id: String, onResult: (String) -> Unit) {

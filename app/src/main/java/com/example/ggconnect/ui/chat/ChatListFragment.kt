@@ -264,9 +264,14 @@ class ChatListFragment : Fragment(), ChatRoomClickListener {
         _binding = null
     }
 
-    override fun onChatRoomClick(chatRoomId: String, chatRoomName: String) {
-        val action = ChatListFragmentDirections.actionChatListToChatRoom(chatRoomId, chatRoomName)
+    override fun onChatRoomClick(chatRoomId: String, chatRoomName: String, chatRoomType: Int) {
+        val action = ChatListFragmentDirections.actionChatListToChatRoom(
+            chatRoomId,
+            chatRoomName,
+            chatRoomType
+        )
         view?.findNavController()?.navigate(action)
     }
+
 
 }

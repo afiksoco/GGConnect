@@ -13,21 +13,25 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.ggconnect.data.firebase.FirestoreService
 import com.example.ggconnect.data.models.Message
 import com.example.ggconnect.databinding.FragmentChatRoomBinding
+import com.example.ggconnect.utils.Constants
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.ChildEventListener
 
 class ChatRoomFragment : Fragment() {
-
 
     private var _binding: FragmentChatRoomBinding? = null
     private val binding get() = _binding!!
     private var messageListener: ChildEventListener? = null
     private val args: ChatRoomFragmentArgs by navArgs()
     private val databaseService = RealtimeDatabaseService()
-    private val messageAdapter = MessageAdapter()
 
     private var chatRoomId: String? = null
     private var chatRoomName: String? = null
+    private var chatRoomType: Int = Constants.ChatRoomType.PRIVATE_CHAT // Default to private chat
+    private val senderNameCache = mutableMapOf<String, String>()
+
+    private lateinit var messageAdapter: MessageAdapter
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -38,23 +42,31 @@ class ChatRoomFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         chatRoomId = args.chatRoomId
         chatRoomName = args.chatRoomName
+        chatRoomType = args.chatRoomType
+
         binding.chatRoomTitle.text = chatRoomName
+
         setupRecyclerView()
         setupSendButton()
+
         chatRoomId?.let {
             loadMessages(it)
         }
     }
 
     private fun setupRecyclerView() {
+        messageAdapter = MessageAdapter(chatRoomType) { senderId, callback ->
+            getUserDisplayName(senderId, callback)
+        }
+
         val layoutManager = LinearLayoutManager(requireContext())
         layoutManager.stackFromEnd = true // Enable scrolling to the bottom
         binding.chatMessagesRecyclerView.layoutManager = layoutManager
         binding.chatMessagesRecyclerView.adapter = messageAdapter
     }
-
 
     private fun setupSendButton() {
         binding.sendButton.setOnClickListener {
@@ -63,8 +75,7 @@ class ChatRoomFragment : Fragment() {
                 sendMessage(messageText)
                 binding.messageInput.setText("")
             } else {
-                Toast.makeText(requireContext(), "Message cannot be empty", Toast.LENGTH_SHORT)
-                    .show()
+                Toast.makeText(requireContext(), "Message cannot be empty", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -80,7 +91,6 @@ class ChatRoomFragment : Fragment() {
         chatRoomId?.let {
             databaseService.sendMessage(it, message,
                 onSuccess = {
-                    // Auto-scroll to the bottom when a message is sent
                     binding.chatMessagesRecyclerView.scrollToPosition(messageAdapter.itemCount - 1)
                 },
                 onFailure = { error ->
@@ -95,12 +105,10 @@ class ChatRoomFragment : Fragment() {
     }
 
     private fun loadMessages(chatRoomId: String) {
-        // Remove any existing listener to avoid duplicate triggers
         messageListener?.let {
             databaseService.removeMessageListener(chatRoomId, it)
         }
 
-        // Add a new listener and keep a reference to it
         messageListener = databaseService.listenForMessages(chatRoomId) { message ->
             if (_binding != null) {
                 messageAdapter.addMessage(message)
@@ -111,8 +119,17 @@ class ChatRoomFragment : Fragment() {
         }
     }
 
-
-
+    private fun getUserDisplayName(senderId: String, callback: (String) -> Unit) {
+        if (senderNameCache.containsKey(senderId)) {
+            callback(senderNameCache[senderId] ?: "Unknown User")
+        } else {
+            FirestoreService().getUserDisplayName(senderId) { displayName ->
+                val name = displayName ?: "Unknown User"
+                senderNameCache[senderId] = name
+                callback(name)
+            }
+        }
+    }
 
     override fun onDestroyView() {
         super.onDestroyView()
@@ -125,5 +142,4 @@ class ChatRoomFragment : Fragment() {
 
         _binding = null
     }
-
 }

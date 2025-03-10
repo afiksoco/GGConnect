@@ -118,21 +118,28 @@ class SearchFragment : Fragment() {
 
                 override fun onMessageClick(targetUserId: String) {
                     val currentUserId = FirebaseAuth.getInstance().uid ?: return
+
                     // Get or create a chat room with the selected user
                     realtimeDatabaseService.getOrCreateChatRoom(
                         currentUserId,
                         targetUserId
                     ) { chatRoomId ->
-                        // Navigate to ChatRoomFragment with the chatRoomId
-                        firestoreService.getUserDisplayName(targetUserId) { userName ->
-                            val action = SearchFragmentDirections.actionSearchToChatRoom(
-                                chatRoomId,
-                                userName
-                            )
-                            findNavController().navigate(action)
+                        // Fetch the chat room type from the database
+                        realtimeDatabaseService.getChatRoomType(chatRoomId) { chatRoomType ->
+                            // Fetch the display name of the target user
+                            firestoreService.getUserDisplayName(targetUserId) { userName ->
+                                // Navigate to ChatRoomFragment with all necessary data
+                                val action = SearchFragmentDirections.actionSearchToChatRoom(
+                                    chatRoomId = chatRoomId,
+                                    chatRoomName = userName,
+                                    chatRoomType = chatRoomType
+                                )
+                                findNavController().navigate(action)
+                            }
                         }
                     }
                 }
+
 
 
             }

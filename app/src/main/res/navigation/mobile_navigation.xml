@@ -39,6 +39,9 @@
         <argument
             android:name="chatRoomName"
             app:argType="string" />
+        <argument
+            android:name="chatRoomType"
+            app:argType="integer" />
     </fragment>
 
     <fragment
