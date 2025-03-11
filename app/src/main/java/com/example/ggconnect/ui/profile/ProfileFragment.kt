@@ -44,7 +44,7 @@ class ProfileFragment : Fragment() {
         _binding = FragmentProfileBinding.inflate(inflater, container, false)
         setupUI()
         loadUserProfile()
-//        firestoreService.saveGamesToFirestore()
+        // firestoreService.saveGamesToFirestore()
         return binding.root
     }
 
@@ -82,15 +82,14 @@ class ProfileFragment : Fragment() {
         // Load friends list
         loadFriendsList(user.friends)
 
-        // Update stats
-        binding.gamesCount.text = "Liked Games\n${user.favoriteGames.size}"
-        binding.friendsCount.text = "Friends\n${user.friends.size}"
+        // Update stats in the stats card
+        binding.gamesCountNumber.text = user.favoriteGames.size.toString()
+        binding.friendsCountNumber.text = user.friends.size.toString()
     }
 
     private fun loadFavoriteGames(favoriteGameIds: List<String>) {
         firestoreService.getGames { games ->
-
-            // Log the game IDs and the favorite IDs
+            // Log game IDs and favorite IDs for debugging
             games.forEach { game ->
                 Log.d("GameAdapter", "Game ID: ${game.id}")
             }
@@ -98,11 +97,10 @@ class ProfileFragment : Fragment() {
                 Log.d("GameAdapter", "Favorite Game ID: $id")
             }
 
-// Filter games to show only favorite ones
+            // Filter games to show only favorite ones
             val favoriteGames = games.filter { favoriteGameIds.contains(it.id) }
             Log.d("GameAdapter", "Filtered favorite games size: ${favoriteGames.size}")
 
-            // Filter games to show only favorite ones
             gameAdapter.updateGames(favoriteGames)
         }
     }
@@ -129,16 +127,13 @@ class ProfileFragment : Fragment() {
         val userId = authService.getCurrentUser()?.uid ?: return
 
         firestoreService.getUserProfile(userId) { user ->
-            val updatedUser =
-                user?.copy(profilePicUrl = imageUrl) ?: User(id = userId, profilePicUrl = imageUrl)
+            val updatedUser = user?.copy(profilePicUrl = imageUrl) ?: User(id = userId, profilePicUrl = imageUrl)
             firestoreService.saveUserProfile(updatedUser) { success ->
                 if (success) {
                     loadUserProfile()
-                    Toast.makeText(requireContext(), "Profile picture updated!", Toast.LENGTH_SHORT)
-                        .show()
+                    Toast.makeText(requireContext(), "Profile picture updated!", Toast.LENGTH_SHORT).show()
                 } else {
-                    Toast.makeText(requireContext(), "Failed to save profile picture.", Toast.LENGTH_SHORT)
-                        .show()
+                    Toast.makeText(requireContext(), "Failed to save profile picture.", Toast.LENGTH_SHORT).show()
                 }
             }
         }
