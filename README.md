@@ -49,8 +49,3 @@ gradlew.bat installDebug
 ```
 
 Open and run the project using Android Studio or your preferred IDE.
-
-## License
-
-GGConnect is licensed under the MIT License. See the LICENSE file for details.
-
